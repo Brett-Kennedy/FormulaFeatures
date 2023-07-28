@@ -1,6 +1,13 @@
 # FormulaFeatures
 Feature engineering tool to efficiently create effective, arbitrarily complex arithmetic combinations of numeric features.
 
+supervised feature engineering
+support regression & classification targets
+optimized to keep engineering time and the number of features returned tractable. 
+unary functions. 
+coeficients
+conditions in f(x)
+
 The tool operates on the numeric features of a dataset. The first iteration, it examines each pair of original numeric features. For each, it considers four potential new features based on the four basic arithmetic operations (+, -, *, and /). If any perform better than both parent features, then the strongest of these is added to the set of features. Subsequent features consider combining all features generated in the previous iteration will all other features, again taking the strongest of these, if any. In this way, a practical number of new features are generated, all stronger than the previous features.
 
 This is similar to [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), which will create arithmetic combinations of each pair of numeric features, based on simply operations (+, -, *, and /). This tool, however, differs in that:
