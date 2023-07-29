@@ -25,11 +25,40 @@ class FormulaFeatures:
                  test_log=False,
                  verbose=0):
         """
-        todo: allow users to specify the base model to use (DT by default), and the metric.
-        We can determine if it's classification or regression from the y column (which they
-        need to specify) and the metric -- check they agree.
+        A feature engineering tool to efficiently create effective, arbitrarily-complex arithmetic combinations of
+        numeric features.
 
-        max_iterations_no_gain int: maximum number of iterations with no improvement in the metric of the top feature
+         base_model
+            Currently unimplemented
+
+         metric
+            Currently unimplemented
+
+         max_iterations (int)
+            The maximum iterations the fit process is allowed to execute. This limits the number and complexity of the
+            features engineered
+
+         max_iterations_no_gain
+            Currently unimplemented
+
+         max_original_features (int)
+            Where the input dataframe contains more than this number of columns, only the max_original_features features
+            with the highest scores will be combined with other features
+
+         target_type (string)
+            Must be "classification" or "regression"
+
+         test_square
+            Currently unimplemented
+
+         test_sqrt
+            Currently unimplemented
+
+         test_log
+            Currently unimplemented
+
+         verbose (int)
+            Either 0, 1, or 2. Indicates the amount of information displayed during the fit process.
         """
 
         self.base_model = base_model
@@ -131,6 +160,10 @@ class FormulaFeatures:
         self.__display_features_metrics("Final")
 
     def fit_transform(self, x):
+        """
+        Equivalent to calling fit() and transform()
+        """
+
         self.fit(x)
         x = x.copy()
         for feature_idx, feature_name in enumerate(self.features_arr):
@@ -143,7 +176,7 @@ class FormulaFeatures:
 
     def transform(self, x):
         """
-        Given a dataframe with the X features, return the same dataframe with the additional
+        Given a dataframe with same features as used passed to fit(), return the same dataframe with the additional
         features determined in the fit process.
         """
         x = x.copy()
@@ -168,20 +201,20 @@ class FormulaFeatures:
 
     def __get_metrics_orig_features(self):
         """
-        Determine how strong each feature is individually in a 1d model.
+        Determine how strong each feature is individually in a 1D model.
         """
 
         self.feature_scores = []
 
         for col_name in self.features_arr:
             if self.target_type == 'regression':
-                dt = DecisionTreeRegressor()  # todo: use the specified model type
+                dt = DecisionTreeRegressor()
                 dt.fit(self.x_train[[col_name]], self.y_train)
                 y_pred = dt.predict(self.x_test[[col_name]])
                 r2 = r2_score(self.y_test, y_pred)
                 self.feature_scores.append(r2)
             else:
-                dt = DecisionTreeClassifier()  # todo: use the specified model type
+                dt = DecisionTreeClassifier()
                 dt.fit(self.x_train[[col_name]], self.y_train)
                 y_pred = dt.predict(self.x_test[[col_name]])
                 f1 = f1_score(self.y_test, y_pred, average='macro')
@@ -220,6 +253,8 @@ class FormulaFeatures:
 
     def __combine_features(self, starting_idx):
         """
+        Each call to this method represents one iteration. It tries combining all features from starting_idx up to all
+        other features, taking the strongest of these features.
         """
 
         new_elements = []
@@ -373,7 +408,6 @@ class FormulaFeatures:
                 plt.scatter(x=self.feature_values[feat_idx][0], y=self.y_train)
             else:
                 s = sns.boxplot(x=self.feature_values[feat_idx][0], y=self.y_train)
-                #plt.boxplot(x=self.feature_values[feat_idx][0], y=self.y_train)
             s.xlabel = feat_name
             s.ylabel = 'Target'
             plt.title(f"Relationship of {feat_name} to Target")
