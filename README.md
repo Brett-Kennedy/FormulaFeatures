@@ -72,7 +72,7 @@ Note: the tool provides strictly feature engineering, and may return more featur
 
 
 ## Comparison to other Feature Engineering Tools
-
+ 
 The tool uses the fit-tranform pattern, the same as that used by sklearn's PolynomialFeatures and many other feature engineering tools. And so, it is easy to substitute this tool for others to determine which is the most useful for any given project. 
 
 FormulaFeatures is similar to [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), which will create arithmetic combinations of each pair of original numeric features, based on simply operations (+, -, *, and /). This tool, however, differs in that:
@@ -302,6 +302,8 @@ For all files, the time engineer the new features was under two minutes, even wi
                                dis   classification                 0.696957                 0.563886    -0.133071
                 steel-plates-fault   classification                 1.000000                 1.000000     0.000000
 ```
+
+The model performed better with than without FormulaFeatures feature engineering 49 out of 69 cases. Note though, only one dataset in the random sample was a regression problem. 
 
 Some noteworthy examples are: 
 - Japanese Vowels improved from .57 to .68
