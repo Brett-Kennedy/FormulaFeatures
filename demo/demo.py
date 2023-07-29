@@ -214,7 +214,6 @@ def test_real():
         x_test_extended = ff.transform(x_test)
         display_df = x_test_extended.copy()
         display_df['Y'] = y_test.values
-        # print(display_df.head())
 
         # Test using the extended features
         if target_type == 'regression':
@@ -322,6 +321,7 @@ def test_real():
 
 
 if __name__ == '__main__':
+    # Uncomment these as desired:
     # demo_simple()
     # demo_get_scores()
     demo_plot()
