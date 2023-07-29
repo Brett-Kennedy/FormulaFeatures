@@ -123,8 +123,86 @@ It's arguable if DT or other potentially interpretable model is still interpreta
 
 ## Example Getting Feature Scores
 
+Getting the feature scores may be useful for understanding the features generated and for feature selection. 
+
+```python
+  data = fetch_openml('gas-drift')
+  x = pd.DataFrame(data.data, columns=data.feature_names)
+  y = data.target
+  
+  # Drop all non-numeric columns. This is not necessary, but is done here for simplicity.
+  x = x.select_dtypes(include=np.number)
+  
+  # Divide the data into train and test splits. For a more reliable measure of accuracy, cross validation may also
+  # be used. This is done here for simplicity.
+  x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=42)
+  
+  ff = FormulaFeatures(
+      max_iterations=2,
+      max_original_features=10,
+      target_type='classification',
+      verbose=1)
+  ff.fit(x_train, y_train)
+  x_train_extended = ff.transform(x_train)
+  x_test_extended = ff.transform(x_test)
+  
+  display_df = x_test_extended.copy()
+  display_df['Y'] = y_test.values
+  print(display_df.head())
+  
+  # Test using the extended features
+  extended_score = test_f1(x_train_extended, x_test_extended, y_train, y_test)
+  print(f"F1 (macro) score on extended features: {extended_score}")
+  
+  # Get a summary of the features engineered and their scores based on 1D models
+  ff.display_features()
+```
+
+This will produce the following report:
+
+```
+ 0:    0.438, V9
+   1:    0.417, V65
+   2:    0.412, V67
+   3:    0.412, V68
+   4:    0.412, V69
+   5:    0.404, V70
+   6:    0.409, V73
+   7:    0.409, V75
+   8:    0.409, V76
+   9:    0.414, V78
+  10:    0.447, ('V65', 'divide', 'V9')
+  11:    0.465, ('V67', 'divide', 'V9')
+  12:    0.422, ('V67', 'subtract', 'V65')
+  13:    0.424, ('V68', 'multiply', 'V65')
+  14:    0.489, ('V70', 'divide', 'V9')
+  15:    0.477, ('V73', 'subtract', 'V65')
+  16:    0.456, ('V75', 'divide', 'V9')
+  17:     0.45, ('V75', 'divide', 'V67')
+  18:    0.487, ('V78', 'divide', 'V9')
+  19:    0.422, ('V78', 'divide', 'V65')
+  20:    0.512, (('V67', 'divide', 'V9'), 'multiply', ('V65', 'divide', 'V9'))
+  21:    0.449, (('V67', 'subtract', 'V65'), 'divide', 'V9')
+  22:     0.45, (('V68', 'multiply', 'V65'), 'subtract', 'V9')
+  23:    0.435, (('V68', 'multiply', 'V65'), 'multiply', ('V67', 'subtract', 'V65'))
+  24:    0.535, (('V73', 'subtract', 'V65'), 'multiply', 'V9')
+  25:    0.545, (('V73', 'subtract', 'V65'), 'multiply', 'V78')
+  26:    0.466, (('V75', 'divide', 'V9'), 'subtract', ('V67', 'divide', 'V9'))
+  27:    0.525, (('V75', 'divide', 'V67'), 'divide', ('V73', 'subtract', 'V65'))
+  28:    0.519, (('V78', 'divide', 'V9'), 'multiply', ('V65', 'divide', 'V9'))
+  29:    0.518, (('V78', 'divide', 'V9'), 'divide', ('V75', 'divide', 'V67'))
+  30:    0.495, (('V78', 'divide', 'V65'), 'subtract', ('V70', 'divide', 'V9'))
+  31:    0.463, (('V78', 'divide', 'V65'), 'add', ('V75', 'divide', 'V9'))
+```
+This includes the original features for context. 
+
 ## Example Plotting the Engineered Features
 
+Plotting the features is also supported and can also be useful for understanding the relationships of the features to the target. An example is provided in the demo python file included in this repository. It is the same as the above example, but includes the line:
+
+```python
+  ff.plot_features()
+```
 
 ## Example Notebook
 
@@ -223,4 +301,4 @@ Some particularly noteworthy examples are:
 - hill-valley .52 to .74
 - climate-model-simulation-crashes .47 to .64
 - banknote-authentication .95 to .99
-- page-blocks 0.66 to .81
+- page-blocks .66 to .81
