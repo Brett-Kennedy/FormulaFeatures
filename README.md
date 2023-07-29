@@ -101,5 +101,5 @@ will not be helpful if there are not interactions between the features. However,
 
 In some cases will generate no new features. In others will generate some, but this will not improve model accuracy. But, in some cases does, particularly with the shallow decision trees used here.
 
-
+Can get better results limiting max_iterations to 2 compared to 3. This is a hyperparameter, and must be tuned like any other. But, for most datasets, using 2 or 3 works well, while with others, setting much higher, or to None (which allows the process to continue so long as it can produce more effective features), may work well. 
   
