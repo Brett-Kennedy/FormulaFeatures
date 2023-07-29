@@ -3,7 +3,7 @@ A feature engineering tool to efficiently create effective, arbitrarily-complex 
 
 ## Introduction
 
-FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A*B)/(D*E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A*B is a strong feature and that (D*E) is as well before determining if (A*B)/(D*E) is stronger still and including it if so.
+FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A * B) / (D * E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A * B is a strong feature and that D * E is as well before determining if (A * B) / (D * E) is stronger still and including it if so.
 
 FormulaFeatures is a form of supervised feature engineering, considering the target column and producing a set of features specifically useful for predicting that target. This allows it to focus on a small number of engineered features, as simple or complex as necessary, without generating all possible combinations as with unsupervised methods. This supports both regression & classification targets. 
 
@@ -303,10 +303,10 @@ For all files, the time engineer the new features was under two minutes, even wi
                 steel-plates-fault   classification                 1.000000                 1.000000     0.000000
 ```
 
-Some particularly noteworthy examples are: 
-- Japanese Vowels .57 to .68
-- gas-drift .74 to .83
-- hill-valley .52 to .74
-- climate-model-simulation-crashes .47 to .64
-- banknote-authentication .95 to .99
-- page-blocks .66 to .81
+Some noteworthy examples are: 
+- Japanese Vowels improved from .57 to .68
+- gas-drift improved from .74 to .83
+- hill-valley improved from .52 to .74
+- climate-model-simulation-crashes improved from .47 to .64
+- banknote-authentication improved from .95 to .99
+- page-blocks improved from .66 to .81
