@@ -3,7 +3,9 @@ A feature engineering tool to efficiently create effective, arbitrarily-complex 
 
 ## Introduction
 
-FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A * B) / (D * E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A * B is a strong feature and that D * E is as well before determining if (A * B) / (D * E) is stronger still and including it if so.
+Engineering features based on the original features is often helpful for increasing the accuracy of predictors on tabular data. 
+
+FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered simple formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A * B) / (D * E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A * B is a strong feature and that D * E is as well before determining if (A * B) / (D * E) is stronger still and including it if so.
 
 FormulaFeatures is a form of supervised feature engineering, considering the target column and producing a set of features specifically useful for predicting that target. This allows it to focus on a small number of engineered features, as simple or complex as necessary, without generating all possible combinations as with unsupervised methods. This supports both regression & classification targets. 
 
@@ -164,8 +166,10 @@ Getting the feature scores may be useful for understanding the features generate
 
 This will produce the following report:
 
+This lists each feature index, F1 macro score, feature name.
+
 ```
- 0:    0.438, V9
+   0:    0.438, V9
    1:    0.417, V65
    2:    0.412, V67
    3:    0.412, V68
