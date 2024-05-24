@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
@@ -6,6 +8,7 @@ from sklearn.metrics import r2_score, f1_score
 from sklearn.datasets import fetch_openml
 
 # Code from this project
+sys.path.insert(0, "..")
 from formula_features import FormulaFeatures, generate_synthetic_x_data
 from formula_features import generate_synthetic_y_formula_4_0, \
                                 generate_synthetic_y_formula_4_1, \
@@ -40,7 +43,10 @@ def test_f1(x_train, x_test, y_train, y_test):
     x_train = clean_df(x_train)
     x_test = clean_df(x_test)
     dt = DecisionTreeClassifier(max_leaf_nodes=10)
-    dt.fit(x_train, y_train)
+    try:
+        dt.fit(x_train, y_train)
+    except:
+        x = 9
     y_pred = dt.predict(x_test)
     f1 = f1_score(y_test, y_pred, average='macro')
     return f1
@@ -68,7 +74,7 @@ def demo_simple():
 
 
 def demo_get_scores():
-    data = fetch_openml('gas-drift')
+    data = fetch_openml('gas-drift', version=1, parser='auto')
     x = pd.DataFrame(data.data, columns=data.feature_names)
     y = data.target
 
@@ -101,7 +107,7 @@ def demo_get_scores():
 
 
 def demo_plot():
-    data = fetch_openml('hill-valley')
+    data = fetch_openml('hill-valley', version=1, parser='auto')
     x = pd.DataFrame(data.data, columns=data.feature_names)
     y = data.target
 
@@ -175,7 +181,7 @@ def test_synthetic():
 
 def test_real():
     def test_dataset(dataset_name, max_iterations):
-        data = fetch_openml(dataset_name)
+        data = fetch_openml(dataset_name, version=1, parser='auto')
         x = pd.DataFrame(data.data, columns=data.feature_names)
         y = data.target
 
