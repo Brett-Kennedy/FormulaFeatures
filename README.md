@@ -214,7 +214,7 @@ Plotting the features is also supported and can also be useful for understanding
 
 In the case of regression targets, the tool presents a scatter plot mapping each feature to the target. In the case of classification targets, the tool presents a boxplot, giving the distribution of a feature broken down by class label. It is of then case that the orginal features show little difference in distributions per class, while engineered features can show a distinct difference. For example, one feature generated, (V99 / V64) - (V99 / V42) shows a strong separation:
 
-![Example](https://github.com/Brett-Kennedy/FormulaFeatures/blob/main/images/eng_feat_1.jpg). 
+![Example](https://github.com/Brett-Kennedy/FormulaFeatures/blob/main/images/eng_feat_2.jpg). 
 
 This is typical of the features engineered; while each has an imperfect seperation, each is strong, much more so than for the original features. 
 
