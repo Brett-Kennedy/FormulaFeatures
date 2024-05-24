@@ -196,6 +196,7 @@ class FormulaFeatures:
                     new_col = pd.DataFrame({feature_name: x[feat_1] / x[feat_2]})
                 x = pd.concat([x, new_col], axis=1)
 
+        x.columns = [str(col_name) for col_name in x.columns]
         x = self.__clean_data(x)
         return x
 
