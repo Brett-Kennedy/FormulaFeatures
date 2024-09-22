@@ -1,40 +1,46 @@
 # FormulaFeatures
-A feature engineering tool to efficiently create effective, arbitrarily-complex arithmetic combinations of numeric features.
+A feature engineering tool to efficiently create effective, arbitrarily-complex arithmetic combinations of numeric features. 
 
 ## Introduction
 
-Engineering features based on the original features is often helpful for increasing the accuracy of predictors on tabular data. 
+FormulaFeatures is intended for use primarily with interpretable models, such as shallow decision trees, where having single highly concise and highly predictive features can aid greatly with the interpretability and accuracy of the models. 
 
-FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered simple formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A * B) / (D * E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A * B is a strong feature and that D * E is as well before determining if (A * B) / (D * E) is stronger still and including it if so.
+FormulaFeatures is a tool to engineer features based on the original features, and is often helpful for increasing the accuracy of predictors on tabular data. 
 
-FormulaFeatures is a form of supervised feature engineering, considering the target column and producing a set of features specifically useful for predicting that target. This allows it to focus on a small number of engineered features, as simple or complex as necessary, without generating all possible combinations as with unsupervised methods. This supports both regression & classification targets. 
+FormulaFeatures is named as such as it allows generating features of sufficient complexity to be considered simple formulas. For example, given a dataset with columns A, B, C, D, E, F, the tool may generate features such as (A * B) / (D * E). However, it does so in a principled, step-wise manner, ensuring that each component of the final features created is justified. In most instances, the features engineered are combinations of just two or three original features, though may be based on more where warranted (and not limited through hyperparameter selection). In this example, the tool would first determine both that A * B is a strong feature and that D * E is as well before determining if (A * B) / (D * E) is stronger still and including it if so. 
 
-Even within the context of supervised feature engineering, there may be an explosion in the numbers of engineered features, resulting in long fit and transform times, as well as producing more features than can be reasonably used by any downstream tasks, such as prediction, clustering, or outlier detection. FormulaFeatures is optimized to keep both engineering time and the number of features returned tractable, and its algorithm is designed to limit the numbers of features generated. 
+FormulaFeatures is more likely to engineer features such as A * B than (A * B) / (D * E), as simpler features will be favoured, keeping the engineered features just as complex as is warranted. 
+
+FormulaFeatures is a form of supervised feature engineering, considering the target column and producing a set of features specifically useful for predicting that target. This allows it to focus on a small number of engineered features, as simple or complex as necessary, without generating all possible combinations, as is done with unsupervised methods. This supports both regression & classification targets. 
+
+Even within the context of supervised feature engineering, (depending on the specific approach used) there may be an explosion in the numbers of engineered features, resulting in long fit and transform times, as well as producing more features than can be reasonably used by any downstream tasks, such as prediction, clustering, or outlier detection. FormulaFeatures is optimized to keep both engineering time and the number of features returned tractable, and its algorithm is designed to limit the numbers of features generated. 
 
 ## Unary Functions
-By default, FormulaFeatures does not incorporate unary functions, such as square, square root, or log. In some cases, it may be that a feature such as A<sup>2</sup> / B predicts the target better than the equivalent form without the square operator: A / B. However, including unary operators can lead to misleading features if not substantially correct and may not significantly increase the accuracy of any models using them. When using, for example, decision trees, so long as there is a monotonic relationship between the features and target, which most unary functions maintain (with exceptions such as sin and cos, which may reasonably be used where cyclical patterns are strongly suspected), there will not be any change in the final accuracy of the model. In terms of explanatory power, simpler functions can often capture nearly as much as more complex functions and are more comprehensible to people examining them. 
+By default, FormulaFeatures does not incorporate unary functions, such as square, square root, or log. In some cases, it may be that a feature such as A<sup>2</sup> / B predicts the target better than the equivalent form without the square operator: A / B. However, including unary operators can lead to misleading features if not substantially correct and may not significantly increase the accuracy of any models using them. When using, for example, decision trees (or tree-based models, such as Random Forest, CatBoost, XGBoost, LGBM, Bayesian Additive Regression Trees, etc), so long as there is a monotonic relationship between the features and target, which most unary functions maintain (with exceptions such as sin and cos, which may reasonably be used where cyclical patterns are strongly suspected), there will not be any change in the final accuracy of the model. In terms of explanatory power, simpler functions can often capture nearly as much as more complex functions and are more comprehensible to people examining them. 
 
-A similar argument may be made for including coefficients in engineered features. A feature such as 5.3A + 1.4B may capture the relationship between A and B with Y better than the simpler A+B, but the coefficients are often unnecessary, prone to be calculated incorrectly, and inscrutable even where approximately correct. In the case of multiplication and division operations, the coefficients are most likely irrelevant, as 5.3A * 1.4B will be functionally equivalent to A*B for most purposes, as the difference is a constant which can be divided out. Again, there is a monotonic relationship with and without the coefficients, and thus the features are equivalant to models such as decision trees that are concerned only with the ordering of feature values, not their specific values. 
+A similar argument may be made for including coefficients in engineered features. A feature such as 5.3A + 1.4B may capture the relationship between A and B with Y better than the simpler A+B, but the coefficients are often unnecessary, prone to be calculated incorrectly, and inscrutable even where approximately correct. In the case of multiplication and division operations, the coefficients are most likely irrelevant, as 5.3A * 1.4B will be functionally equivalent to A*B for most purposes, as the difference is a constant which can be divided out. Again, there is a monotonic relationship with and without the coefficients, and thus the features are equivalant to models such as decision trees that are concerned only with the ordering of feature values, not their specific values. This may effect distance-based models such as SVN and kNN, but will not tend to affect tree-based models.
 
 ## Algorithm
-The tool operates on the numeric features of a dataset. In the first iteration, it examines each pair of original numeric features. For each, it considers four potential new features based on the four basic arithmetic operations (+, -, *, and /). If any perform better than both parent features, then the strongest of these is added to the set of features. Subsequent iterations then consider combining all features generated in the previous iteration will all other features, again taking the strongest of these, if any. In this way, a practical number of new features are generated, all stronger than the previous features. 
+The tool operates on the numeric features of a dataset. In the first iteration, it examines each pair of original numeric features. For each, it considers four potential new features based on the four basic arithmetic operations (+, -, *, and /). We limit the features produced to these operations for greater interpretability and to ensure the process is tractable. If any perform better than both parent features, then the strongest of these is added to the set of features. 
 
-At the end of each iteration, the correlation among the features created this iteration is examined, and where two or more features that are highly correlated where created, only the strongest is kept, removing the others. This process does allow for new features that are correlated with features created in previous iterations, as the new features will be stronger, while the earlier features will be less complex, and quite potentially still useful in later iterations. 
+Subsequent iterations then consider combining all features generated in the previous iteration will all other features. That is, we consider all the new possible pairs of features, without re-examining the pairs of features that existed in previous iterations. At each step we, again take the strongest of these new features, if any are stronger than both parents. In this way, a practical number of new features are generated, all stronger than the previous features. 
 
-In this way, each iteration creates a more powerful set of features than the previous. This is a combination of combining weak features to make them stronger, and more likely useful in a downstream task, as well as combining strong features to make these stronger, creating what are most likely the most predictive features. 
+At the end of each iteration, the correlation among the features created this iteration is examined, and where two or more features that are highly correlated are found, only the strongest is kept, removing the others (there can be sets of three or more correlated features). This process does allow for new features that are correlated with features created in previous iterations, as the new features will be stronger, while the earlier features will be less complex, and quite potentially still useful in later iterations. 
+
+In this way, each iteration creates a more powerful set of features than the previous. This is a combination of combining weak features to make them stronger (and more likely useful in downstream tasks), as well as combining strong features to make these stronger, creating what are most likely the most predictive features. 
 
 The process uses 1D models (models utilizing a single feature) to evaluate each feature. This has a number of advantages, in particular:
 
-- 1D models are quite fast both to train and test, which allows the fitting process to execute much quicker
-- 1D models are simpler and so may reasonably operate on smaller samples of the data, further improving efficiency
-- Using single features eliminates searching for effective combinations of features
+- 1D models are quite fast both to train and test, which allows the fitting process to execute much quicker than many other approaches
+- 1D models are simple and so may reasonably operate on smaller samples of the data, further improving efficiency
+- Testing with strictly single features at a time (original and engineered features) eliminates searching for effective combinations of features, which is compuationally expensive.
 - This ensures all features useful in themselves, so supports the features being a form of XAI in themselves (described further below). 
 
-One effect of using 1D models is, almost all engineered features will have global significance, which is often desirable, but it does mean the tool can miss generating features useful only in specific sub-spaces.
+One effect of using 1D models is, almost all engineered features will have global significance, which is often desirable, but it does mean the tool can miss generating additional features that would be useful only in specific sub-spaces. This is, at least potentially with some datasets, a limitation.
 
 Setting the tool to execute with verbose=1 or verbose=2 allows viewing the process in greater detail. A simple example is sketched here as well.
 
-Assume we start with a dataset with features A, B, and C and that this is a regression problem. Future versions will support more metrics, but the currently-available version internally uses R2 for regression problems and F1 (macro) for classification problems. So, in this case we begin with calculating the R2 for each original feature, training a decision tree using only feature A, then only B, then only C. This may give the following R2 scores:
+Assume we start with a dataset with features A, B, and C and that this is a regression problem. Future versions will support more metrics, but the currently-available version internally uses R2 for regression problems and F1 (macro) for classification problems. (Using these metrics will still identify the most predictive features, even if optimized for slightly different metrics than the final model will use.) So, in this case we begin with calculating the R2 for each original feature, training a decision tree using only feature A, then only B, then only C. This may give the following R2 scores:
 ```
 A   0.43
 B   0.02
@@ -47,7 +53,7 @@ A * B  0.44
 A - B  0.21
 A / B  -0.01
 ```
-Here there are two operations that have a higher R2 score than either parent feature (A or B): + and *. We take the highest of these, which is A + B, and add this to the set of features. We do the same for A & B and B & C. In most cases, no feature is added, but often one is. After the first iteration we may have:
+Here there are two operations that have a higher R2 score than either parent feature (A or B): + and *. We take the highest of these, which is A + B, and add this to the set of features. We do the same for A & B and B & C. In most cases, no feature will be added, but often one is. After the first iteration we may have:
 
 ```
 A       0.43
@@ -66,26 +72,28 @@ B / C               0.32
 (A + B) - C         0.56
 (A + B) * (B / C)   0.66
 ```
-This continues until there is no longer improvement, or a limit specified by a hyperparameter, commonly max_iterations, is reached. 
+This continues until there is no longer improvement, or a limit specified by a hyperparameter, called max_iterations, is reached. 
 
-The tool does limit the number of original columns considered when the input data has many columns. As it is common for datasets to contain hundreds of columns, creating even pairwise engineered features can invite overfitting as well as excessive time discovering the engineered features. So, where datasets have large numbers of columns, only the most predictive are considered after the first iteration. The subsequent iterations perform as normal; there is simply a reduction of the original features used at the beginning. 
+The tool does limit the number of original columns considered when the input data has many columns. As it is common for datasets to contain hundreds of columns, creating even pairwise engineered features can invite overfitting as well as excessive time creating and evaluating the potential engineered features. So, where datasets have large numbers of columns, only the most predictive are considered after the first iteration. The subsequent iterations perform as normal; there is simply a reduction of the original features used at the beginning. 
 
 Note: the tool provides strictly feature engineering, and may return more features than are necessary or useful for some models. As such, subsequent feature selection will still be necessary in most cases. 
-
 
 ## Comparison to other Feature Engineering Tools
  
 The tool uses the fit-tranform pattern, the same as that used by sklearn's PolynomialFeatures and many other feature engineering tools. And so, it is easy to substitute this tool for others to determine which is the most useful for any given project. 
 
-FormulaFeatures is similar to [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), which will create arithmetic combinations of each pair of original numeric features, based on simply operations (+, -, *, and /). This tool, however, differs in that:
+FormulaFeatures is similar to [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), which is unsupervised and will create arithmetic combinations of each pair of original numeric features, based on simply operations (+, -, *, and /). This tool, however, differs in that:
 
+- It will generate far fewer features, but each that it generates will be useful
 - It will only generate features that are more predictive than either parent feature
 - For any given pair of features, it will include only, if any, the combination based on the operator (+, -, *, or /) that results in the greatest predictive power
 - It will continue looping for either a specified number of iterations, or so long as it is able to create more powerful features, and so can create more powerful features than ArithmeticFeatures, which is limited to features based on pairs of original features. 
 
-Some interactions may be difficult to capture using arithmetic functions. Where there is a more complex relationship between pairs of features and the target column, it may be more appropriate to use [ikNN](https://github.com/Brett-Kennedy/ikNN).
+Another popular feature engineering tool based on arithmetic operations is AutoFeat, which works similarly to [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), also in an unsupervised manner, so will create many more features. This increases the need for feature selection, but as feature selection is generally done in any case, AutoFeat may also generate useful features for any given project. That is, [ArithmeticFeatures](https://github.com/Brett-Kennedy/ArithmeticFeatures), autoFeat, and other unsupervised methods amy work quite well for any given project, and simply require more feature selection to be performed. 
 
-Another popular feature engineering tool based on arithmetic operations is AutoFeat, which works similarly, but in an unsupervised manner, so will create many more features. This increases the need for feature selection, but as this is generally done in any case, AutoFeat may also generate useful features for any given project. The current project focuses more on XAI goals and memory efficiency. 
+The current project focuses more on XAI goals and memory efficiency. 
+
+Some interactions may be difficult to capture using arithmetic functions. Where there is a more complex relationship between pairs of features and the target column, it may be more appropriate to use [ikNN](https://github.com/Brett-Kennedy/ikNN).
 
 ## FormulaFeatures for Explainable AI (XAI)
 
