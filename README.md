@@ -99,13 +99,15 @@ Some interactions may be difficult to capture using arithmetic functions. Where 
 
 One interesting property of FormulaFeatures is that the features generated are themselves a form of XAI. Examining the features engineered, particularly those with strong scores, can provide insights into the data, and how the features interact with the target. Though, this is an approximation of the true f(x), it can be a useful approximation. For example, with original features A and B, it may be known that A and B are both positively associated with the target, but if A + B is significantly more strongly associated, this may be informative that there is true additive relationship between the features.
 
-The goal of the tool is to create a small set of powerful features, which allow potentially interpretable models, such as Decision Trees, Rule Sets, Rule Lists, Naive Bayes, and Generalized Additive Models to produce accurate models with few features, allowing them to be quite interpretable. Though in some cases it may be debatable if the overall interpretability is increased or decreased when using more than a few complex features. In these cases, it may be advised to tune the maximum number of iterations (and hense maximum complexity of the engineered features) or the number of engineered features used in an interpretable model. 
+The goal of the tool is to create a small set of powerful features, which allow potentially interpretable models, such as Decision Trees, Decision Tables, Rule Sets, Rule Lists, Naive Bayes, ikNN, Genetic Decision Trees, Additive Decsision Trees, and Generalized Additive Models to produce accurate models with few features, allowing them to be quite interpretable. Though in some cases it may be debatable if the overall interpretability is increased or decreased when using more than a few complex features. In these cases, it may be advised to tune the maximum number of iterations (and hense maximum complexity of the engineered features) or the number of engineered features used in an interpretable model. Or to simply manually filter any features produced by FormulaFeatures if they appear too complex for a given audience. 
 
-With Decision Trees, the engineered features generated tend to be put at the top of the trees (as these are the most powerful features, but no single features can split the data perfectly at any step), with the original features lower in the tree, which can create fairly interpretable trees.
+With Decision Trees, the engineered features generated tend to be put at the top of the trees (as these are the most powerful features, best able to maximize information gain), but no single feature can split the data perfectly at any step. Other feaetures are used lower in the tree, which tend to be simpler engineered features (based only only two original features), or the original features. On the whole, this can produce fairly interpretable decision trees.
+
+Where there are feature interactions, decsion trees can often deal with these well, but by creating very deep trees, where the data space is divided into each combination of the two (or more features). This can work well in terms of accuracy (though it does mean that splits lower in the tree are based on fewer and fewer samples, so become progressively less reliable). But, large decision trees are effectively incomprehensible. They are very difficult for people to assess. Much of the power of FormulaFeatures is in generating single features that can allow single (or a small number of) splits in a decision tree, that can remove the need for many nodes if using only the original features. 
 
 FormulaFeatures is not likely to help with state of the art models for tabular data such as CatBoost, which tend to be able to capture feature interactions quite effectively in any case. In some cases, this may improve accuracy to a small degree, but it is intended for use primarily with interpretable models. 
 
-## Scaling
+## Scaling the features
 
 For some model types, such as SVM and kNN models, the features engineered by FormulaFeatures may be on quite different scales than the orginal features, and may need to be scaled. 
 
@@ -147,7 +149,7 @@ Getting the feature scores may be useful for understanding the features generate
   # Drop all non-numeric columns. This is not necessary, but is done here for simplicity.
   x = x.select_dtypes(include=np.number)
   
-  # Divide the data into train and test splits. For a more reliable measure of accuracy, cross validation may also
+  # Divide the data into train and test splits. For a more reliable measure of accuracy, cross validation may 
   # be used. This is done here for simplicity.
   x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=42)
   
@@ -174,7 +176,7 @@ Getting the feature scores may be useful for understanding the features generate
 
 This will produce the following report:
 
-This lists each feature index, F1 macro score, feature name.
+This lists each feature index, F1 macro score, and feature name.
 
 ```
    0:    0.438, V9
@@ -220,11 +222,11 @@ Plotting the features is also supported and can also be useful for understanding
   ff.plot_features()
 ```
 
-In the case of regression targets, the tool presents a scatter plot mapping each feature to the target. In the case of classification targets, the tool presents a boxplot, giving the distribution of a feature broken down by class label. It is of then case that the orginal features show little difference in distributions per class, while engineered features can show a distinct difference. For example, one feature generated, (V99 / V64) - (V99 / V42) shows a strong separation:
+In the case of regression targets, the tool presents a scatter plot mapping each feature to the target. In the case of classification targets, the tool presents a boxplot, giving the distribution of a feature broken down by class label. It is often the case that the orginal features show little difference in distributions per class, while engineered features can show a distinct difference. For example, one feature generated, (V99 / V64) - (V99 / V42) shows a strong separation:
 
 ![Example](https://github.com/Brett-Kennedy/FormulaFeatures/blob/main/images/eng_feat_2.png). 
 
-This is typical of the features engineered; while each has an imperfect seperation, each is strong, much more so than for the original features. 
+This is typical of the features engineered; while each has an imperfect seperation, each is strong, often much more so than for the original features. 
 
 ## Example File
 
@@ -232,13 +234,13 @@ In the demo folder, a python file called demo.py has been provided, which includ
 
 ## Test Results
 
-Testing was performed on synthetic and real data. The tool performed very well on the synthetic data, but this provides more debugging and testing than meaningful evaluation. For real data, a set of 80 random datasets from OpenML were selected, though only those having at least two numeric features could be included, leaving 69 files. Testing consisted of performing a simple, single train-test split on the data, then traing and evaluating a model on the numeric feature both before and after engineering additional features. For classification datasets Macro F1 was used, and for regression, R2. As the tool is designed for use with interpretable models, a decision tree (either sklearn's DecisionTreeClassifer or DecisionTreeRegressor) was used, setting max_leaf_nodes = 10 (corresponding to 10 induced rules) to ensure an interpretable model.
+Testing was performed on synthetic and real data. The tool performed very well on the synthetic data, but this provides more debugging and testing than meaningful evaluation. For real data, a set of 80 random datasets from OpenML were selected, though only those having at least two numeric features could be included, leaving 69 files. Testing consisted of performing a simple, single train-test split on the data, then traing and evaluating a model on the numeric feature both before and after engineering additional features. For classification datasets Macro F1 was used, and for regression, R2. As the tool is designed for use with interpretable models, a decision tree (either scikit-learn's DecisionTreeClassifer or DecisionTreeRegressor) was used, setting max_leaf_nodes = 10 (corresponding to 10 induced rules) to ensure an interpretable model.
 
-In many cases, the tools provided for no improvement or only slight improvements in the accuracy of the shallow decision trees, as is expected. No feature engineering technique will work in all cases. More informative is that the tool led to significant increases inaccuracy an impressive number of times. This is without tuning or feature selection, which can further improve the utility of the tool. As well, using interpretably models other than shallow decision trees will give different results. 
+In many cases, the tool provided for no improvement or only slight improvements in the accuracy of the shallow decision trees, as is expected. No feature engineering technique will work in all cases. More informative is that the tool led to significant increases inaccuracy an impressive number of times. This is without tuning or feature selection, which can further improve the utility of the tool. As well, using interpretable models other than shallow decision trees will give different results. 
 
-The tool will not be helpful if there are not interactions between the features. However, where there are interactions, discovering these can be quite informative. But, often there are no detectable interactions, and the tool will generate no new features. In other cases, it will generate some, but this will not improve model accuracy. But, in some cases does, particularly with the shallow decision trees used here.
+The tool will not be helpful if there are not interactions between the features. However, where there are interactions, discovering these can be quite informative in itself. But, often there are no detectable interactions, and the tool will generate no new features. In other cases, it will generate some, but this will not improve model accuracy. But, in some cases it does noteably improve the model accuracy with the shallow decision trees used here.
 
-Can get better results limiting max_iterations to 2 compared to 3. This is a hyperparameter, and must be tuned like any other. But, for most datasets, using 2 or 3 works well, while with others, setting much higher, or to None (which allows the process to continue so long as it can produce more effective features), may work well. 
+We can very often get better results limiting max_iterations to 2, compared to 3. This is a hyperparameter, and must be tuned like any other. But, for most datasets, using 2 or 3 works well, while with others, setting much higher, or to None (which allows the process to continue so long as it can produce more effective features), may work well. 
 
 For all files, the time engineer the new features was under two minutes, even with many of the test files have hundreds of columns and many thousands of rows. 
 
@@ -315,7 +317,7 @@ For all files, the time engineer the new features was under two minutes, even wi
                 steel-plates-fault   classification                 1.000000                 1.000000     0.000000
 ```
 
-The model performed better with than without FormulaFeatures feature engineering 49 out of 69 cases. Note though, only one dataset in the random sample was a regression problem. 
+The model performed better with than without FormulaFeatures feature engineering 49 out of 69 cases. Note though, only one dataset in the random sample was a regression problem, so this case is not well-tested here. 
 
 Some noteworthy examples are: 
 - Japanese Vowels improved from .57 to .68
