@@ -1,6 +1,8 @@
 # FormulaFeatures
 A feature engineering tool to efficiently create effective, arbitrarily-complex arithmetic combinations of numeric features. 
 
+For the description, see the article on Medium: [FormulaFeatures: A Tool to Generate Highly Predictive Features for Interpretable Models](https://medium.com/towards-data-science/formulafeatures-a-tool-to-generate-highly-predictive-features-for-interpretable-models-e18aab45e96d)
+
 ## Introduction
 
 FormulaFeatures is intended for use primarily with interpretable models, such as shallow decision trees, where having single highly concise and highly predictive features can aid greatly with the interpretability and accuracy of the models. 
